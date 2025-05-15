@@ -1,5 +1,5 @@
 use e2ee_rust_common::{
-    errors::{general::GeneralError, zmq::ZMQError},
+    errors::{general::{GeneralError, ToGeneralError}, zmq::ZMQError},
     messages::{
         client::{
             client_hello::ClientHello,
@@ -49,13 +49,13 @@ fn main() -> Result<(), GeneralError> {
         "test-server",
         "./",
     )
-    .map_err(|e| GeneralError::StorageError(e))?;
+    .to_general_error()?;
     info!("Server storage created");
 
     // Initializes the server storage
     server_storage
         .init_server()
-        .map_err(|e| GeneralError::StorageError(e))?;
+        .to_general_error()?;
     info!("Server storage initialized");
 
     // Prepare our context and socket

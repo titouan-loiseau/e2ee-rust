@@ -35,3 +35,8 @@ impl std::fmt::Display for GeneralError {
         }
     }
 }
+
+// Error convertion trait to GeneralError
+pub trait ToGeneralError<T> {
+    fn to_general_error(self) -> Result<T, GeneralError>;
+}

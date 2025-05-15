@@ -11,7 +11,7 @@ use e2ee_rust_common::{
             traits::PQKEMAlgorithm,
         },
     },
-    errors::{general::GeneralError, zmq::ZMQError},
+    errors::{general::{GeneralError, ToGeneralError}, zmq::ZMQError},
     messages::{
         client::{
             client_hello::ClientHello,
@@ -62,7 +62,7 @@ fn get_client_id(
     } else {
         let storage_client_id = client_storage
             .get_client_uuid()
-            .map_err(|e| GeneralError::StorageError(e))?;
+            .to_general_error()?;
         *cached_client_id = Some(storage_client_id);
         Ok(storage_client_id)
     }
@@ -71,7 +71,7 @@ fn get_client_id(
 fn get_private_bundle(client_storage: &impl ClientStorage) -> Result<PrivateBundle, GeneralError> {
     let private_bundle = client_storage
         .get_private_key_bundle()
-        .map_err(|e| GeneralError::StorageError(e))?;
+        .to_general_error()?;
     Ok(private_bundle)
 }
 
@@ -86,19 +86,19 @@ fn main() -> Result<(), GeneralError> {
         "test-client",
         "./",
     )
-    .map_err(|e| GeneralError::StorageError(e))?;
+    .to_general_error()?;
     info!("Client storage created");
 
     // Initializes the client storage
     client_storage
         .init_client()
-        .map_err(|e| GeneralError::StorageError(e))?;
+        .to_general_error()?;
     info!("Client storage initialized");
 
     // Check if the client is already registered
     if client_storage
         .contains_client()
-        .map_err(|e| GeneralError::StorageError(e))?
+        .to_general_error()?
         .is_some()
     {
         debug!("Client already registered in storage");
@@ -123,7 +123,7 @@ fn main() -> Result<(), GeneralError> {
         // Store the client in the storage
         client_storage
             .create_client(&client_uuid, &private_key_bundle)
-            .map_err(|e| GeneralError::StorageError(e))?;
+            .to_general_error()?;
     }
 
     // Start a request socket

@@ -1,4 +1,4 @@
-use crate::errors::encoding::EncodingError;
+use crate::errors::{encoding::EncodingError, general::ToGeneralError};
 
 use super::{client::errors::ClientStorageError, server::errors::ServerStorageError};
 
@@ -31,6 +31,16 @@ impl From<EncodingError> for StorageInterfaceError {
         match error {
             EncodingError::InvalidKeyLength => StorageInterfaceError::BadKeySize,
             EncodingError::InvalidKeyType => StorageInterfaceError::BadKeyType,
+        }
+    }
+}
+
+// Implement ToGeneralError for StorageInterfaceError
+impl<T> ToGeneralError<T> for Result<T, StorageInterfaceError> {
+    fn to_general_error(self) -> Result<T, crate::errors::general::GeneralError> {
+        match self {
+            Ok(v) => Ok(v),
+            Err(e) => Err(crate::errors::general::GeneralError::StorageError(e)),
         }
     }
 }
