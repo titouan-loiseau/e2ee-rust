@@ -1,0 +1,8 @@
+syntax = "proto3";
+package crypto.pqkem;
+
+enum PBPQKEMType {
+    KYBER512 = 0;
+    KYBER768 = 1;
+    KYBER1024 = 2;
+}

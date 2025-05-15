@@ -1,0 +1,15 @@
+syntax = "proto3";
+package client;
+
+import "client/pb_client_hello.proto";
+import "client/pb_new_keys.proto";
+import "pqxdh/pb_registration_bundle.proto";
+
+message PBClientMessage {
+    string client_id = 1;
+    oneof message {
+        client.PBClientHello clientHello = 2;
+        pqxdh.PBRegistrationBundle registration_bundle = 3;
+        client.PBNewKeys newKeys = 4;
+    }
+}

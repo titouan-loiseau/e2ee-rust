@@ -1,0 +1,12 @@
+@startuml Client connection flow
+
+[*] ---> Idle
+Idle ---> CheckPeerExists : Client send first message to peer
+CheckPeerExists ---> ErrorPeerNotFound : Peer not found
+ErrorPeerNotFound ---> Idle
+CheckPeerExists ---> StoreFirstMessage : Peer found and offline
+StoreFirstMessage ---> Idle : Reply OK
+CheckPeerExists ---> SendFirstMessage : Peer found and online
+SendFirstMessage ---> Idle : Reply OK
+
+@enduml

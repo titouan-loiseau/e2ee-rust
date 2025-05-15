@@ -1,0 +1,16 @@
+@startuml Client connection flow
+
+[*] ---> CheckRegistered : Client hello
+CheckRegistered ---> AskRegistration : User not registered
+CheckRegistered ---> CheckKeys : User already registered
+AskRegistration ---> RegisterClient : Client registration bundle
+RegisterClient ---> CheckKeys
+CheckKeys ---> AskNewSPK : Signed prekey is expired
+AskNewSPK ---> CheckKeys : New signed prekey
+CheckKeys ---> AskNewOPK : Not enough one-time prekeys
+AskNewOPK ---> CheckKeys : New one-time prekey bundle
+CheckKeys ---> SendFirstMessages : All keys ok
+SendFirstMessages ---> Idle
+Idle ---> CheckKeys : Periodically
+
+@enduml

@@ -1,0 +1,11 @@
+# Rust target
+/target
+
+# Rust build cache
+.cargo
+
+# SQLite database files
+*.sqlite
+
+# VSCode settings
+.vscode/

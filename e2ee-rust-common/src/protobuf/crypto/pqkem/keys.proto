@@ -1,0 +1,19 @@
+syntax = "proto3";
+package crypto.pqkem;
+
+import "crypto/pqkem/types.proto";
+
+message PBPQKEMPublicKey {
+    PBPQKEMType key_type = 1;
+    bytes key_bytes = 2;
+}
+
+message PBIdentifiedPQKEMPublicKey {
+    bytes uuid = 1;
+    PBPQKEMPublicKey public_key = 2;
+}
+
+message PBIdentifiedPQKEMPublicKeySignature {
+    PBIdentifiedPQKEMPublicKey identified_public_key = 1;
+    bytes signature = 2;
+}

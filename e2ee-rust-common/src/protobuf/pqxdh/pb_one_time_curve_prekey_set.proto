@@ -1,0 +1,8 @@
+syntax = "proto3";
+package pqxdh;
+
+import "crypto/curve/keys.proto";
+
+message PBOneTimeCurvePrekeySet {
+    repeated crypto.curve.PBIdentifiedEllipticCurvePublicKey prekeys = 1;
+}

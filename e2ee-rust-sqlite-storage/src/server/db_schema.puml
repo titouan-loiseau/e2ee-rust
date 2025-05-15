@@ -1,0 +1,95 @@
+@startuml ServerdDatabaseSchema
+
+hide circle
+skinparam linetype ortho
+
+entity "clients" as clients {
+    id: number NN <<PK>>
+    --
+    client_uuid: blob NN
+    client_key_bundle_id: number NN <<FK>>
+}
+
+entity "key_bundle" as key_bundle {
+    id: number NN <<PK>> <<FK>>
+    --
+    identity_key_id: number NN <<FK>>
+    identity_key_timestamp: number NN
+    signed_curve_prekey_id: number NN <<FK>>
+    signed_curve_prekey_timestamp: number NN
+    signed_last_resort_pqkem_prekey_id: number NN <<FK>>
+    signed_last_resort_pqkem_prekey_timestamp: number NN
+}
+
+entity "elliptic_curve_public_key" as elliptic_curve_public_key {
+    id: number NN <<PK>> <<FK>>
+    --
+    key_type: number NN
+    public_key: blob NN
+}
+
+entity "identified_elliptic_curve_public_key" as identified_elliptic_curve_public_key {
+    id: number NN <<PK>> <<FK>>
+    --
+    uuid: blob NN
+    elliptic_curve_public_key_id: number NN <<FK>>
+}
+
+entity "signed_curve_prekey" as signed_curve_prekey {
+    id: number NN <<PK>> <<FK>>
+    --
+    identified_public_key_id: number NN <<FK>>
+    signature: blob NN
+}
+
+entity "pqkem_public_key" as pqkem_public_key {
+    id: number NN <<PK>> <<FK>>
+    --
+    key_type: number NN
+    public_key: blob NN
+}
+
+entity "identified_pqkem_public_key" as identified_pqkem_public_key {
+    id: number NN <<PK>> <<FK>>
+    --
+    uuid: blob NN
+    pqkem_public_key_id: number NN <<FK>>
+}
+
+entity "signed_pqkem_prekey" as signed_pqkem_prekey {
+    id: number NN <<PK>> <<FK>>
+    --
+    identified_public_key_id: number NN <<FK>>
+    signature: blob NN
+}
+
+entity "one_time_curve_prekey" as one_time_curve_prekey {
+    id: number NN <<PK>> <<FK>>
+    --
+    prekey_id: number NN <<FK>>
+    key_bundle_id: number NN <<FK>>
+}
+
+entity "signed_one_time_pqkem_prekey" as signed_one_time_pqkem_prekey {
+    id: number NN <<PK>> <<FK>>
+    --
+    prekey_id: number NN <<FK>>
+    key_bundle_id: number NN <<FK>>
+}
+
+clients ||--|| key_bundle
+key_bundle ||--|| elliptic_curve_public_key
+key_bundle ||--|| signed_curve_prekey
+elliptic_curve_public_key |o--|| identified_elliptic_curve_public_key
+signed_curve_prekey ||--o| identified_elliptic_curve_public_key
+key_bundle ||--|| signed_pqkem_prekey
+signed_pqkem_prekey ||--o| identified_pqkem_public_key
+identified_pqkem_public_key ||--o| pqkem_public_key
+
+one_time_curve_prekey ||--o| identified_elliptic_curve_public_key
+one_time_curve_prekey ||--o| key_bundle
+
+signed_one_time_pqkem_prekey ||--o| signed_pqkem_prekey
+signed_one_time_pqkem_prekey ||--o| key_bundle
+
+@enduml

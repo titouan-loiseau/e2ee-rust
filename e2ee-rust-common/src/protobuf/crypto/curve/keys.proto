@@ -1,0 +1,14 @@
+syntax = "proto3";
+package crypto.curve;
+
+import "crypto/curve/types.proto";
+
+message PBEllipticCurvePublicKey {
+    PBEllipticCurveType key_type = 1;
+    bytes key_bytes = 2;
+}
+
+message PBIdentifiedEllipticCurvePublicKey {
+    bytes uuid = 1;
+    PBEllipticCurvePublicKey public_key = 2;
+}

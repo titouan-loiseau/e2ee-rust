@@ -1,0 +1,13 @@
+@startuml Client connection flow
+
+[*] ---> Idle
+Idle ---> CheckPeerExists : Client peer prekey bundle request
+CheckPeerExists ---> ErrorPeerNotFound : Peer not found
+ErrorPeerNotFound ---> Idle
+CheckPeerExists ---> CheckAvailableOPK : Peer found
+CheckAvailableOPK ---> PickOPKAndDelete : One-time prekey available
+PickOPKAndDelete ---> SendPeerPrekeyBundle
+SendPeerPrekeyBundle ---> Idle
+CheckAvailableOPK ---> SendPeerPrekeyBundle : No one-time prekey available
+
+@enduml

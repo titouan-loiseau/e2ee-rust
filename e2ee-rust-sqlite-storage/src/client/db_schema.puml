@@ -1,0 +1,71 @@
+@startuml ClientDatabaseSchema
+
+hide circle
+skinparam linetype ortho
+
+entity "client" as client {
+    id: number NN <<PK>>
+    --
+    client_uuid: blob NN
+    identity_key_id: number NN <<FK>>
+    curve_prekey_id: number NN <<FK>>
+    last_resort_prekey_id: number NN <<FK>>
+}
+
+entity "elliptic_curve_keypair" as elliptic_curve_keypair {
+    id: number NN <<PK>> <<FK>>
+    --
+    key_type: number NN
+    private_key: blob NN
+    public_key: blob NN
+}
+
+entity "identified_elliptic_curve_keypair" as identified_elliptic_curve_keypair {
+    id: number NN <<PK>>
+    --
+    elliptic_curve_keypair_id: number NN <<FK>>
+    uuid: blob NN
+}
+
+entity "pqkem_keypair" as pqkem_keypair {
+    id: number NN <<PK>> <<FK>>
+    --
+    key_type: number NN
+    private_key: blob NN
+    public_key: blob NN
+}
+
+entity "identified_pqkem_keypair" as identified_pqkem_keypair {
+    id: number NN <<PK>>
+    --
+    pqkem_keypair_id: number NN <<FK>>
+    uuid: blob NN
+}
+
+entity "one_time_curve_prekey" as one_time_curve_prekey {
+    id: number NN <<PK>>
+    --
+    client_id: number NN <<FK>>
+    identified_elliptic_curve_keypair_id: number NN <<FK>>
+}
+
+entity "one_time_pqkem_prekey" as one_time_pqkem_prekey {
+    id: number NN <<PK>>
+    --
+    client_id: number NN <<FK>>
+    identified_pqkem_keypair_id: number NN <<FK>>
+}
+
+client ||--o| elliptic_curve_keypair
+client ||--o| identified_elliptic_curve_keypair
+client ||--o| identified_pqkem_keypair
+client ||--o{ one_time_curve_prekey
+client ||--o{ one_time_pqkem_prekey
+
+elliptic_curve_keypair |o--|| identified_elliptic_curve_keypair
+pqkem_keypair |o--|| identified_pqkem_keypair
+
+one_time_curve_prekey ||--o| identified_elliptic_curve_keypair
+one_time_pqkem_prekey ||--o| identified_pqkem_keypair
+
+@enduml

@@ -1,0 +1,10 @@
+[package]
+name = "e2ee-rust-sqlite-storage"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+e2ee-rust-common = { path = "../e2ee-rust-common" }
+rusqlite = { version = "0.35.0", features = ["bundled"] }
+uuid = { version = "1.0", features = ["v4"] }
+chrono = "0.4.41"

@@ -1,0 +1,14 @@
+[package]
+name = "e2ee-rust-client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+e2ee-rust-common = { path = "../e2ee-rust-common" }
+e2ee-rust-sqlite-storage = { path = "../e2ee-rust-sqlite-storage" }
+log = "0.4.26"
+env_logger = "0.11.7"
+rand = "0.8"
+zeroize = "1.8.1"
+zmq = "0.10.0"
+uuid = { version = "1.0", features = ["v4"] }

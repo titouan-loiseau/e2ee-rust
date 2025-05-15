@@ -1,0 +1,7 @@
+syntax = "proto3";
+package crypto.curve;
+
+enum PBEllipticCurveType {
+    CURVE25519 = 0;
+    CURVE448 = 1;
+}

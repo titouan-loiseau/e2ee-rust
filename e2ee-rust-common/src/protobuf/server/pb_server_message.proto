@@ -1,0 +1,26 @@
+syntax = "proto3";
+package server;
+
+enum PBServerError {
+    UNKNOWN_ERROR = 0;
+    CANNOT_DECODE_CLIENT_MESSAGE = 1;
+    CLIENT_ALREADY_REGISTERED = 2;
+    CLIENT_NOT_REGISTERED = 3;
+    BAD_RESPONSE = 4;
+}
+
+enum PBServerCommand {
+    ASK_FOR_REGISTRATION_BUNDLE = 0;
+    ASK_FOR_NEW_SPK = 1;
+    ASK_FOR_NEW_LAST_RESORT_PQKEM_PREKEY = 2;
+    ASK_FOR_NEW_COPK = 3;
+    ASK_FOR_NEW_PQOPK = 4;
+}
+
+message PBServerMessage {
+    oneof message {
+       PBServerError error = 1;
+       PBServerCommand command = 2;
+       bool ok = 3;
+    }
+}
