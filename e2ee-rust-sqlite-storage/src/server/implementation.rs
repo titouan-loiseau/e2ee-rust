@@ -32,11 +32,14 @@ impl ServerStorage for SQLiteStorage {
     }
 
     fn get_client(&self, client_id: &Uuid) -> Result<ClientInformation, StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
         // Get the key bundle id from the clients table
-        let key_bundle_id = get_client_key_bundle_id(*client_id, &self.connection)?;
+        let key_bundle_id = get_client_key_bundle_id(*client_id, &conn)?;
 
         // Get the key bundle from the key_bundle table
-        let key_bundle = get_key_bundle_from_id(key_bundle_id, &self.connection)?;
+        let key_bundle = get_key_bundle_from_id(key_bundle_id, &conn)?;
 
         Ok(ClientInformation { key_bundle })
     }
@@ -46,7 +49,10 @@ impl ServerStorage for SQLiteStorage {
         client_id: Uuid,
         client: &ClientInformation,
     ) -> Result<(), StorageInterfaceError> {
-        insert_client(client_id, &client.key_bundle, &self.connection)?;
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
+        insert_client(client_id, &client.key_bundle, &conn)?;
         Ok(())
     }
 
@@ -56,18 +62,21 @@ impl ServerStorage for SQLiteStorage {
         new_key: &SignedCurvePrekey,
         timestamp: &DateTime<Utc>,
     ) -> Result<(), StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
         // Get the client's key bundle ID
-        let key_bundle_id = get_client_key_bundle_id(client_id, &self.connection)?;
+        let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
 
         // Add the new prekey in the database
-        let new_signed_curve_prekey_id = insert_signed_curve_prekey(new_key, &self.connection)?;
+        let new_signed_curve_prekey_id = insert_signed_curve_prekey(new_key, &conn)?;
 
         // Update the key bundle to use the new key
         update_key_bundle_signed_curve_prekey(
             key_bundle_id,
             new_signed_curve_prekey_id,
             timestamp,
-            &self.connection,
+            &conn,
         )?;
 
         // TODO: Delete the old key
@@ -81,19 +90,21 @@ impl ServerStorage for SQLiteStorage {
         new_key: &SignedPQKEMPrekey,
         timestamp: &DateTime<Utc>,
     ) -> Result<(), StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
         // Get the client's key bundle ID
-        let key_bundle_id = get_client_key_bundle_id(client_id, &self.connection)?;
+        let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
 
         // Add the new prekey in the database
-        let new_signed_last_resort_pqkem_prekey_id =
-            insert_signed_pqkem_prekey(new_key, &self.connection)?;
+        let new_signed_last_resort_pqkem_prekey_id = insert_signed_pqkem_prekey(new_key, &conn)?;
 
         // Update the key bundle to use the new key
         update_key_bundle_signed_last_resort_pqkem_prekey(
             key_bundle_id,
             new_signed_last_resort_pqkem_prekey_id,
             timestamp,
-            &self.connection,
+            &conn,
         )?;
 
         // TODO: Delete the old key
@@ -106,11 +117,14 @@ impl ServerStorage for SQLiteStorage {
         client_id: Uuid,
         new_keys: &OneTimeCurvePrekeySet,
     ) -> Result<(), StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
         // Get the client's key bundle ID
-        let key_bundle_id = get_client_key_bundle_id(client_id, &self.connection)?;
+        let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
 
         // Add the new prekeys in the database
-        insert_one_time_curve_prekey_set(new_keys, key_bundle_id, &self.connection)?;
+        insert_one_time_curve_prekey_set(new_keys, key_bundle_id, &conn)?;
 
         Ok(())
     }
@@ -120,11 +134,14 @@ impl ServerStorage for SQLiteStorage {
         client_id: Uuid,
         new_keys: &SignedOneTimePqkemPrekeySet,
     ) -> Result<(), StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
         // Get the client's key bundle ID
-        let key_bundle_id = get_client_key_bundle_id(client_id, &self.connection)?;
+        let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
 
         // Add the new prekeys in the database
-        insert_signed_one_time_pqkem_prekey_set(new_keys, key_bundle_id, &self.connection)?;
+        insert_signed_one_time_pqkem_prekey_set(new_keys, key_bundle_id, &conn)?;
 
         Ok(())
     }

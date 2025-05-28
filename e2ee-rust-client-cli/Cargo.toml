@@ -1,0 +1,10 @@
+[package]
+name = "e2ee-rust-client-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crossterm = "0.29.0"
+e2ee-rust-client-lib = { path = "../e2ee-rust-client-lib" }
+e2ee-rust-sqlite-storage = { path = "../e2ee-rust-sqlite-storage" }
+e2ee-rust-common = { path = "../e2ee-rust-common" }

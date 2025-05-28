@@ -6,14 +6,15 @@ use e2ee_rust_common::storage::{
     errors::{InitializationError, StorageInterfaceError},
     storage_interface::StorageInterface,
 };
-use rusqlite::Connection;
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use server::consts::REQ_FIND_TABLES;
 
 const SERVER_SCHEMA_VERSION: i32 = 1;
 const CLIENT_SCHEMA_VERSION: i32 = 1;
 
 pub struct SQLiteStorage {
-    connection: Connection,
+    pool: Pool<SqliteConnectionManager>,
 }
 
 impl SQLiteStorage {
@@ -22,21 +23,22 @@ impl SQLiteStorage {
         schema: &'static str,
         expected_version: i32,
     ) -> Result<(), StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
         // Check if the database exists
-        let table_exists = self
-            .connection
+        let table_exists = conn
             .query_row(REQ_FIND_TABLES, [], |row| row.get::<_, String>(0))
             .is_ok();
 
         if !table_exists {
             // Create the database schema from the schema_server.sql file
-            self.connection.execute_batch(schema).map_err(|_| {
+            conn.execute_batch(schema).map_err(|_| {
                 StorageInterfaceError::InitializationError(InitializationError::CannotCreateSchema)
             })?;
         } else {
             // Check the database schema version using PRAGMA schema.schema_version;
-            let schema_version = self
-                .connection
+            let schema_version = conn
                 .query_row("PRAGMA user_version;", [], |row| row.get::<_, i32>(0))
                 .map_err(|_| {
                     StorageInterfaceError::InitializationError(InitializationError::NoSchemaVersion)
@@ -59,12 +61,13 @@ impl SQLiteStorage {
 impl StorageInterface for SQLiteStorage {
     fn new(application_name: &str, root_path: &str) -> Result<Self, StorageInterfaceError> {
         let db_path = format!("{}/db_{}.sqlite", root_path, application_name);
-        let connection = Connection::open(db_path).map_err(|_| {
+        let manager = SqliteConnectionManager::file(db_path);
+        let pool = r2d2::Pool::new(manager).map_err(|_| {
             StorageInterfaceError::InitializationError(InitializationError::CannotCreateConnection)
         })?;
 
         // Create the SQLiteStorage instance and initialize the database schema
-        let storage = SQLiteStorage { connection };
+        let storage = SQLiteStorage { pool };
 
         // Return the initialized SQLiteStorage instance
         Ok(storage)

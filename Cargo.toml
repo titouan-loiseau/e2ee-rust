@@ -1,8 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-    "e2ee-rust-client",
     "e2ee-rust-server",
     "e2ee-rust-common", 
     "e2ee-rust-sqlite-storage",
+    "e2ee-rust-client-lib",
+    "e2ee-rust-client-cli",
 ]
