@@ -4,8 +4,9 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{
     crypto::traits::PrintableKey,
-    errors::encoding::EncodingError,
+    errors::{encoding::EncodingError, protobuf::ProtobufError},
     protobuf::crypto::curve::{PbEllipticCurvePublicKey, PbIdentifiedEllipticCurvePublicKey},
+    protobuf::utils::uuid_from_bytes,
 };
 
 use super::enum_elliptic_curve_type::EllipticCurveType;
@@ -81,6 +82,29 @@ impl EllipticCurvePublicKey {
             bytes,
         })
     }
+
+    pub fn from_protobuf(
+        pb_elliptic_curve_public_key: &PbEllipticCurvePublicKey,
+    ) -> Result<Self, ProtobufError> {
+        let elliptic_curve_type =
+            EllipticCurveType::from_id(pb_elliptic_curve_public_key.key_type as u8).ok_or(
+                ProtobufError::InvalidField("elliptic_curve_public_key.public_key.key_type"),
+            )?;
+
+        let public_key_bytes = pb_elliptic_curve_public_key.key_bytes.clone();
+        if public_key_bytes.len() != elliptic_curve_type.public_key_length() {
+            return Err(ProtobufError::InvalidFieldLength(
+                "elliptic_curve_public_key.public_key.key_bytes",
+                public_key_bytes.len(),
+                elliptic_curve_type.public_key_length(),
+            ));
+        }
+
+        Ok(Self {
+            key_type: elliptic_curve_type,
+            bytes: public_key_bytes,
+        })
+    }
 }
 
 impl IdentifiedEllipticCurveKeyPair {
@@ -102,6 +126,23 @@ impl IdentifiedEllipticCurvePublicKey {
             id: identified_key_pair.id,
             public_key: identified_key_pair.key_pair.public_key.clone(),
         }
+    }
+
+    pub fn from_protobuf(
+        pb_identified_elliptic_curve_public_key: &PbIdentifiedEllipticCurvePublicKey,
+    ) -> Result<Self, ProtobufError> {
+        let id = uuid_from_bytes(&pb_identified_elliptic_curve_public_key.uuid)?;
+        Ok(IdentifiedEllipticCurvePublicKey {
+            id,
+            public_key: EllipticCurvePublicKey::from_protobuf(
+                pb_identified_elliptic_curve_public_key
+                    .public_key
+                    .as_ref()
+                    .ok_or(ProtobufError::InvalidField(
+                        "identified_elliptic_curve_public_key.public_key",
+                    ))?,
+            )?,
+        })
     }
 
     pub fn to_protobuf(&self) -> PbIdentifiedEllipticCurvePublicKey {

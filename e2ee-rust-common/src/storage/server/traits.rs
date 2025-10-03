@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::{
+    crypto::curve::keys::IdentifiedEllipticCurvePublicKey,
     pqxdh::{
         one_time_curve_prekey_set::OneTimeCurvePrekeySet, signed_curve_prekey::SignedCurvePrekey,
         signed_one_time_pqkem_prekey_set::SignedOneTimePqkemPrekeySet,
@@ -24,14 +25,14 @@ pub trait ServerStorage {
     // Adds a client to the storage
     // Returns a ClientAlreadyExists error if the client is already registered
     fn add_client(
-        &mut self,
+        &self,
         client_id: Uuid,
         client: &ClientInformation,
     ) -> Result<(), StorageInterfaceError>;
 
     // Updates a client's signed curve prekey
     fn update_signed_curve_prekey(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_key: &SignedCurvePrekey,
         timestamp: &DateTime<Utc>,
@@ -39,7 +40,7 @@ pub trait ServerStorage {
 
     // Updates a client's signed last resort PQKEM prekey
     fn update_signed_last_resort_pqkem_prekey(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_key: &SignedPQKEMPrekey,
         timestamp: &DateTime<Utc>,
@@ -47,15 +48,29 @@ pub trait ServerStorage {
 
     // Adds new one time curve prekeys to a client's key bundle
     fn add_one_time_curve_prekeys(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_keys: &OneTimeCurvePrekeySet,
     ) -> Result<(), StorageInterfaceError>;
 
+    // Removes a one time curve prekey from a client's key bundle and returns it
+    // Returns None if no one time curve prekey is left
+    fn pop_one_time_curve_prekey(
+        &self,
+        client_id: Uuid,
+    ) -> Result<Option<IdentifiedEllipticCurvePublicKey>, StorageInterfaceError>;
+
     // Adds new signed one time PQKEM prekeys to a client's key bundle
     fn add_signed_one_time_pqkem_prekeys(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_key: &SignedOneTimePqkemPrekeySet,
     ) -> Result<(), StorageInterfaceError>;
+
+    // Removes a signed one time pqkem prekey from a client's key bundle and returns it
+    // Returns None if no signed one time pqkem prekey is left
+    fn pop_signed_one_time_pqkem_prekey(
+        &self,
+        client_id: Uuid,
+    ) -> Result<Option<SignedPQKEMPrekey>, StorageInterfaceError>;
 }

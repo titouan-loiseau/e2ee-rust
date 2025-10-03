@@ -1,0 +1,6 @@
+syntax = "proto3";
+package client;
+
+message PBClientRequestPeerBundle {
+    string peer_uuid = 1;
+}

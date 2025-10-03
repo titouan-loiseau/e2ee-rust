@@ -4,7 +4,11 @@ use e2ee_rust_common::{
 };
 use rusqlite::{params, Connection};
 
-use crate::{utils::insert_returning_id, ToStorageInterfaceError};
+use crate::{
+    server::consts::REQ_DELETE_ELLIPTIC_CURVE_PUBLIC_KEY,
+    utils::{insert_returning_id, perform_delete},
+    ToStorageInterfaceError,
+};
 
 use super::consts::{REQ_INSERT_ELLIPTIC_CURVE_PUBLIC_KEY, REQ_QUERY_ELLIPTIC_CURVE_PUBLIC_KEY};
 
@@ -52,4 +56,16 @@ pub fn insert_elliptic_curve_public_key(
         "elliptic_curve_public_key",
         connection,
     )?)
+}
+
+pub fn delete_elliptic_curve_public_key(
+    db_key_id: i32,
+    connection: &Connection,
+) -> Result<(), StorageInterfaceError> {
+    // Perform the delete
+    perform_delete(
+        REQ_DELETE_ELLIPTIC_CURVE_PUBLIC_KEY,
+        params![db_key_id],
+        connection,
+    )
 }

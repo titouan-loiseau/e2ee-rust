@@ -60,3 +60,20 @@ pub fn perform_update(
 
     Ok(res)
 }
+
+// Performs a delete operation
+pub fn perform_delete(
+    statement_str: &str,
+    params: &[&dyn rusqlite::types::ToSql],
+    connection: &Connection,
+) -> Result<(), StorageInterfaceError> {
+    // Prepare the statement
+    let mut statement = connection
+        .prepare(statement_str)
+        .to_storage_interface_error()?;
+
+    // Execute the insert
+    statement.execute(params).to_storage_interface_error()?;
+
+    Ok(())
+}

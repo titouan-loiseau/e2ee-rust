@@ -7,7 +7,7 @@ use crate::{
     protobuf::{pqxdh::PbSignedCurvePrekey, utils::uuid_from_bytes},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SignedCurvePrekey {
     pub identified_public_key: IdentifiedEllipticCurvePublicKey,
     pub signature: [u8; 64],

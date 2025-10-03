@@ -10,6 +10,7 @@ use super::{
     signed_pqkem_prekey::SignedPQKEMPrekey,
 };
 
+#[derive(Clone, Debug)]
 pub struct PrekeyBundle {
     pub identity_key: EllipticCurvePublicKey,
     pub signed_curve_prekey: SignedCurvePrekey,

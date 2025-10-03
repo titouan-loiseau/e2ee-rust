@@ -5,7 +5,11 @@ use e2ee_rust_common::{
 use rusqlite::{params, Connection};
 
 use crate::{
-    utils::{insert_returning_id, uuid_from_bytes},
+    server::{
+        consts::REQ_DELETE_IDENTIFIED_ELLIPTIC_CURVE_PUBLIC_KEY,
+        elliptic_curve_public_key::delete_elliptic_curve_public_key,
+    },
+    utils::{insert_returning_id, perform_delete, uuid_from_bytes},
     ToStorageInterfaceError,
 };
 
@@ -70,4 +74,48 @@ pub fn insert_identified_elliptic_curve_public_key(
         "identified_elliptic_curve_public_key",
         connection,
     )?)
+}
+
+pub fn delete_identified_elliptic_curve_public_key(
+    db_key_id: i32,
+    connection: &Connection,
+) -> Result<(), StorageInterfaceError> {
+    // Create the statement
+    let mut statement = connection
+        .prepare_cached(REQ_QUERY_IDENTIFIED_ELLIPTIC_CURVE_PUBLIC_KEY)
+        .to_storage_interface_error()?;
+
+    // Execute the statement
+    let mut identified_elliptic_curve_public_key_rows =
+        statement.query([db_key_id]).to_storage_interface_error()?;
+
+    // Get the row
+    let identified_elliptic_curve_public_key = identified_elliptic_curve_public_key_rows
+        .next()
+        .map_err(|_| {
+            StorageInterfaceError::ServerStorageError(
+                ServerStorageError::IdentifiedEllipticCurvePublicKeyNotFound,
+            )
+        })?
+        .ok_or(StorageInterfaceError::ServerStorageError(
+            ServerStorageError::IdentifiedEllipticCurvePublicKeyNotFound,
+        ))?;
+
+    // Get the elliptic curve public key db id
+    let elliptic_curve_db_id: i32 = identified_elliptic_curve_public_key
+        .get(1)
+        .to_storage_interface_error()?;
+
+    // Delete the identified elliptic curve public key
+    perform_delete(
+        REQ_DELETE_IDENTIFIED_ELLIPTIC_CURVE_PUBLIC_KEY,
+        params![db_key_id],
+        connection,
+    )?;
+
+    // Delete the elliptic curve public key
+    delete_elliptic_curve_public_key(elliptic_curve_db_id, connection)?;
+
+    // All good
+    Ok(())
 }

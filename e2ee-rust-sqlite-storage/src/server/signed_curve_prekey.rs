@@ -4,7 +4,11 @@ use e2ee_rust_common::{
 };
 use rusqlite::{params, Connection};
 
-use crate::{utils::insert_returning_id, ToStorageInterfaceError};
+use crate::{
+    server::consts::REQ_DELETE_SIGNED_CURVE_PREKEY,
+    utils::{insert_returning_id, perform_delete},
+    ToStorageInterfaceError,
+};
 
 use super::{
     consts::{REQ_INSERT_SIGNED_CURVE_PREKEY, REQ_QUERY_SIGNED_CURVE_PREKEY},
@@ -69,4 +73,15 @@ pub fn insert_signed_curve_prekey(
         "signed_curve_prekey",
         connection,
     )?)
+}
+
+pub fn delete_signed_curve_prekey(
+    db_key_id: i32,
+    connection: &Connection,
+) -> Result<(), StorageInterfaceError> {
+    perform_delete(
+        REQ_DELETE_SIGNED_CURVE_PREKEY,
+        params![db_key_id],
+        connection,
+    )
 }

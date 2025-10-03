@@ -8,10 +8,12 @@ use crate::{
             client_hello::ClientHello,
             client_message::{ClientMessage, ClientMessageType},
             new_keys::NewKeys,
+            request_peer_bundle::RequestPeerBundle,
         },
-        server::server_message::{ServerCommand, ServerError, ServerMessage},
+        server::server_message::{ServerCommand, ServerError, ServerMessage, ServerMessageData},
     },
     pqxdh::registration_bundle::RegistrationBundle,
+    protobuf::server::PbServerMessageData,
 };
 
 use super::{
@@ -54,6 +56,13 @@ pub fn decode_client_message(data: &[u8]) -> Result<ClientMessage, ProtobufError
             client_message.new_keys = Some(NewKeys::from_protobuf(&pb_new_keys)?);
             Ok(client_message)
         }
+        pb_client_message::Message::RequestPeerBundle(pb_request_peer_bundle) => {
+            let mut client_message =
+                ClientMessage::new(ClientMessageType::RequestPeerBundle, client_id);
+            client_message.request_peer_bundle =
+                Some(RequestPeerBundle::from_protobuf(&pb_request_peer_bundle)?);
+            Ok(client_message)
+        }
     }
 }
 
@@ -80,6 +89,13 @@ pub fn decode_server_message(data: &[u8]) -> Result<ServerMessage, ProtobufError
             )))
         }
         pb_server_message::Message::Ok(_) => Ok(ServerMessage::new_ok()),
+        pb_server_message::Message::Data(pb_server_message_data) => {
+            Ok(ServerMessage::new_data(ServerMessageData::from_protobuf(
+                PbServerMessageData::try_from(pb_server_message_data).map_err(|e| {
+                    ProtobufError::DecodeError(prost::DecodeError::new(e.to_string()))
+                })?,
+            )?))
+        }
     }
 }
 

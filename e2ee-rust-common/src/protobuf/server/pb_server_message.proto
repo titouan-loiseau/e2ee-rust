@@ -1,6 +1,8 @@
 syntax = "proto3";
 package server;
 
+import "server/pb_server_peer_bundle.proto";
+
 enum PBServerError {
     UNKNOWN_ERROR = 0;
     CANNOT_DECODE_CLIENT_MESSAGE = 1;
@@ -17,10 +19,17 @@ enum PBServerCommand {
     ASK_FOR_NEW_PQOPK = 4;
 }
 
+message PBServerMessageData {
+    oneof data {
+        PBServerPeerBundle peer_bundle = 1;
+    }
+}
+
 message PBServerMessage {
     oneof message {
-       PBServerError error = 1;
-       PBServerCommand command = 2;
-       bool ok = 3;
+        bool ok = 1;
+        PBServerError error = 2;
+        PBServerCommand command = 3;
+        PBServerMessageData data = 4;
     }
 }

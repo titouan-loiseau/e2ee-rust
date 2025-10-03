@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use e2ee_rust_common::{
+    crypto::curve::keys::IdentifiedEllipticCurvePublicKey,
     pqxdh::{
         one_time_curve_prekey_set::OneTimeCurvePrekeySet, signed_curve_prekey::SignedCurvePrekey,
         signed_one_time_pqkem_prekey_set::SignedOneTimePqkemPrekeySet,
@@ -12,7 +13,16 @@ use e2ee_rust_common::{
 };
 use uuid::Uuid;
 
-use crate::{SQLiteStorage, SERVER_SCHEMA_VERSION};
+use crate::{
+    server::{
+        key_bundle::{get_signed_curve_prekey_id, get_signed_last_resort_pqkem_prekey_id},
+        one_time_curve_prekey::pop_one_time_curve_prekey_from_set,
+        signed_curve_prekey::delete_signed_curve_prekey,
+        signed_one_time_pqkem_prekey::pop_signed_one_time_pqkem_prekey_from_set,
+        signed_pqkem_prekey::delete_signed_pqkem_public_key,
+    },
+    SQLiteStorage, SERVER_SCHEMA_VERSION,
+};
 
 use super::{
     clients::insert_client,
@@ -45,7 +55,7 @@ impl ServerStorage for SQLiteStorage {
     }
 
     fn add_client(
-        &mut self,
+        &self,
         client_id: Uuid,
         client: &ClientInformation,
     ) -> Result<(), StorageInterfaceError> {
@@ -57,7 +67,7 @@ impl ServerStorage for SQLiteStorage {
     }
 
     fn update_signed_curve_prekey(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_key: &SignedCurvePrekey,
         timestamp: &DateTime<Utc>,
@@ -67,6 +77,9 @@ impl ServerStorage for SQLiteStorage {
 
         // Get the client's key bundle ID
         let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
+
+        // Get the current prekey
+        let current_signed_curve_prekey_id = get_signed_curve_prekey_id(key_bundle_id, &conn)?;
 
         // Add the new prekey in the database
         let new_signed_curve_prekey_id = insert_signed_curve_prekey(new_key, &conn)?;
@@ -79,13 +92,14 @@ impl ServerStorage for SQLiteStorage {
             &conn,
         )?;
 
-        // TODO: Delete the old key
+        // Delete the old signed curve prekey
+        delete_signed_curve_prekey(current_signed_curve_prekey_id, &conn)?;
 
         Ok(())
     }
 
     fn update_signed_last_resort_pqkem_prekey(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_key: &SignedPQKEMPrekey,
         timestamp: &DateTime<Utc>,
@@ -95,6 +109,9 @@ impl ServerStorage for SQLiteStorage {
 
         // Get the client's key bundle ID
         let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
+
+        // Get the current last resort pqkem prekey db id
+        let current_pqkem_db_id = get_signed_last_resort_pqkem_prekey_id(key_bundle_id, &conn)?;
 
         // Add the new prekey in the database
         let new_signed_last_resort_pqkem_prekey_id = insert_signed_pqkem_prekey(new_key, &conn)?;
@@ -107,13 +124,14 @@ impl ServerStorage for SQLiteStorage {
             &conn,
         )?;
 
-        // TODO: Delete the old key
+        // Delete the old last resort prekey
+        delete_signed_pqkem_public_key(current_pqkem_db_id, &conn)?;
 
         Ok(())
     }
 
     fn add_one_time_curve_prekeys(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_keys: &OneTimeCurvePrekeySet,
     ) -> Result<(), StorageInterfaceError> {
@@ -129,8 +147,22 @@ impl ServerStorage for SQLiteStorage {
         Ok(())
     }
 
+    fn pop_one_time_curve_prekey(
+        &self,
+        client_id: Uuid,
+    ) -> Result<Option<IdentifiedEllipticCurvePublicKey>, StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
+        // Get the client's key bundle ID
+        let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
+
+        // Pop the prekey from the database
+        pop_one_time_curve_prekey_from_set(key_bundle_id, &conn)
+    }
+
     fn add_signed_one_time_pqkem_prekeys(
-        &mut self,
+        &self,
         client_id: Uuid,
         new_keys: &SignedOneTimePqkemPrekeySet,
     ) -> Result<(), StorageInterfaceError> {
@@ -144,5 +176,19 @@ impl ServerStorage for SQLiteStorage {
         insert_signed_one_time_pqkem_prekey_set(new_keys, key_bundle_id, &conn)?;
 
         Ok(())
+    }
+
+    fn pop_signed_one_time_pqkem_prekey(
+        &self,
+        client_id: Uuid,
+    ) -> Result<Option<SignedPQKEMPrekey>, StorageInterfaceError> {
+        // Get the connection
+        let conn = self.pool.get().unwrap();
+
+        // Get the client's key bundle ID
+        let key_bundle_id = get_client_key_bundle_id(client_id, &conn)?;
+
+        // Pop the prekey from the database
+        pop_signed_one_time_pqkem_prekey_from_set(key_bundle_id, &conn)
     }
 }

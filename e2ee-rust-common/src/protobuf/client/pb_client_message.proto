@@ -3,6 +3,7 @@ package client;
 
 import "client/pb_client_hello.proto";
 import "client/pb_new_keys.proto";
+import "client/pb_request_peer_bundle.proto";
 import "pqxdh/pb_registration_bundle.proto";
 
 message PBClientMessage {
@@ -11,5 +12,6 @@ message PBClientMessage {
         client.PBClientHello clientHello = 2;
         pqxdh.PBRegistrationBundle registration_bundle = 3;
         client.PBNewKeys newKeys = 4;
+        client.PBClientRequestPeerBundle requestPeerBundle = 5;
     }
 }

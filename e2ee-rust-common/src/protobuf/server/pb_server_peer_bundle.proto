@@ -1,0 +1,13 @@
+syntax = "proto3";
+package server;
+
+import "crypto/curve/keys.proto";
+import "pqxdh/pb_signed_curve_prekey.proto";
+import "pqxdh/pb_signed_pqkem_prekey.proto";
+
+message PBServerPeerBundle {
+    crypto.curve.PBEllipticCurvePublicKey identity_key = 1;
+    pqxdh.PBSignedCurvePrekey signed_curve_prekey = 2;
+    pqxdh.PBSignedPQKEMPrekey signed_pqkem_prekey = 3;
+    crypto.curve.PBIdentifiedEllipticCurvePublicKey one_time_curve_prekey = 4;
+}

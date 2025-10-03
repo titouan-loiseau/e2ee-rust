@@ -6,6 +6,7 @@ use crate::protobuf::client::{pb_client_message, PbClientMessage};
 
 use super::client_hello::ClientHello;
 use super::new_keys::NewKeys;
+use super::request_peer_bundle::RequestPeerBundle;
 
 pub struct ClientMessage {
     pub message_type: ClientMessageType,
@@ -13,6 +14,7 @@ pub struct ClientMessage {
     pub client_hello: Option<ClientHello>,
     pub registration_bundle: Option<RegistrationBundle>,
     pub new_keys: Option<NewKeys>,
+    pub request_peer_bundle: Option<RequestPeerBundle>,
 }
 
 impl ClientMessage {
@@ -23,6 +25,7 @@ impl ClientMessage {
             client_hello: None,
             registration_bundle: None,
             new_keys: None,
+            request_peer_bundle: None,
         }
     }
 
@@ -41,6 +44,11 @@ impl ClientMessage {
                 ClientMessageType::NewKeys => Some(pb_client_message::Message::NewKeys(
                     self.new_keys.as_ref().unwrap().to_protobuf(),
                 )),
+                ClientMessageType::RequestPeerBundle => {
+                    Some(pb_client_message::Message::RequestPeerBundle(
+                        self.request_peer_bundle.as_ref().unwrap().to_protobuf(),
+                    ))
+                }
             },
         }
     }
@@ -50,4 +58,5 @@ pub enum ClientMessageType {
     ClientHello,
     RegistrationBundle,
     NewKeys,
+    RequestPeerBundle,
 }

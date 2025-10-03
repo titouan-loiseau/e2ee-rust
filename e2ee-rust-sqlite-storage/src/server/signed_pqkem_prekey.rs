@@ -4,7 +4,14 @@ use e2ee_rust_common::{
 };
 use rusqlite::{params, Connection};
 
-use crate::{utils::insert_returning_id, ToStorageInterfaceError};
+use crate::{
+    server::{
+        consts::REQ_DELETE_SIGNED_PQKEM_PREKEY,
+        identified_pqkem_public_key::delete_identified_pqkem_public_key,
+    },
+    utils::{insert_returning_id, perform_delete},
+    ToStorageInterfaceError,
+};
 
 use super::{
     consts::{REQ_INSERT_SIGNED_PQKEM_PREKEY, REQ_QUERY_SIGNED_PQKEM_PREKEY},
@@ -65,4 +72,45 @@ pub fn insert_signed_pqkem_prekey(
         "signed_pqkem_prekey",
         connection,
     )?)
+}
+
+pub fn delete_signed_pqkem_public_key(
+    db_key_id: i32,
+    connection: &Connection,
+) -> Result<(), StorageInterfaceError> {
+    // Create the statement
+    let mut statement = connection
+        .prepare_cached(REQ_QUERY_SIGNED_PQKEM_PREKEY)
+        .to_storage_interface_error()?;
+
+    // Execute the statement
+    let mut signed_pqkem_prekey_rows = statement.query([db_key_id]).to_storage_interface_error()?;
+
+    // Get the row
+    let signed_pqkem_prekey_row = signed_pqkem_prekey_rows
+        .next()
+        .map_err(|_| {
+            StorageInterfaceError::ServerStorageError(ServerStorageError::SignedPQKEMPrekeyNotFound)
+        })?
+        .ok_or(StorageInterfaceError::ServerStorageError(
+            ServerStorageError::SignedPQKEMPrekeyNotFound,
+        ))?;
+
+    // Get the identified pqkem public key db id
+    let identified_pqkem_db_id: i32 = signed_pqkem_prekey_row
+        .get(0)
+        .to_storage_interface_error()?;
+
+    // Delete the signed pqkem prekey
+    perform_delete(
+        REQ_DELETE_SIGNED_PQKEM_PREKEY,
+        params![db_key_id],
+        connection,
+    )?;
+
+    // Delete the identified pqkem public key
+    delete_identified_pqkem_public_key(identified_pqkem_db_id, connection)?;
+
+    // All good
+    Ok(())
 }

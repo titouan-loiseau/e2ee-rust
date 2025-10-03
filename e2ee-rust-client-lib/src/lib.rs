@@ -243,6 +243,7 @@ fn server_heartbeat<
                     .map_err(|_| GeneralError::ZMQ(ZMQError::SendError))?;
                 debug!("Sent client response");
             }
+            ServerMessageType::Data => todo!(),
         }
     }
 

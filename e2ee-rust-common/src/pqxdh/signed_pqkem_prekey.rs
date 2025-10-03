@@ -7,7 +7,7 @@ use crate::{
     protobuf::{pqxdh::PbSignedPqkemPrekey, utils::uuid_from_bytes},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SignedPQKEMPrekey {
     pub identified_public_key: IdentifiedPQKEMPublicKey,
     pub signature: [u8; 64],

@@ -132,6 +132,52 @@ pub fn get_key_bundle_from_id(
     })
 }
 
+pub fn get_signed_curve_prekey_id(
+    key_bundle_id: i32,
+    connection: &Connection,
+) -> Result<i32, StorageInterfaceError> {
+    // Create the statement
+    let mut key_bundle_stmt = connection
+        .prepare_cached(REQ_QUERY_KEY_BUNDLE)
+        .to_storage_interface_error()?;
+
+    // Execute statement
+    let mut key_bundle_rows = key_bundle_stmt
+        .query([key_bundle_id])
+        .to_storage_interface_error()?;
+
+    // Get the row
+    let row = key_bundle_rows.next().to_storage_interface_error()?.ok_or(
+        StorageInterfaceError::ServerStorageError(ServerStorageError::KeyBundleNotFound),
+    )?;
+
+    // Return the curve ID
+    Ok(row.get(2).to_storage_interface_error()?)
+}
+
+pub fn get_signed_last_resort_pqkem_prekey_id(
+    key_bundle_id: i32,
+    connection: &Connection,
+) -> Result<i32, StorageInterfaceError> {
+    // Create the statement
+    let mut key_bundle_stmt = connection
+        .prepare_cached(REQ_QUERY_KEY_BUNDLE)
+        .to_storage_interface_error()?;
+
+    // Execute statement
+    let mut key_bundle_rows = key_bundle_stmt
+        .query([key_bundle_id])
+        .to_storage_interface_error()?;
+
+    // Get the row
+    let row = key_bundle_rows.next().to_storage_interface_error()?.ok_or(
+        StorageInterfaceError::ServerStorageError(ServerStorageError::KeyBundleNotFound),
+    )?;
+
+    // Return the signed last resort pqkem prekey ID
+    Ok(row.get(4).to_storage_interface_error()?)
+}
+
 pub fn insert_key_bundle(
     key_bundle: &ClientKeyBundle,
     connection: &Connection,
